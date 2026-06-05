@@ -76,21 +76,6 @@ and/or use the pre-commit hook: https://github.com/renovatebot/pre-commit-hooks
    **************************************************/
 
   "customManagers": [
-    // Track the latest CI VM images by tag on the containers/automation_images
-    // repo.  Propose updates when newer tag available compared to what is
-    // referenced in a repo's .cirrus.yml file.
-    {
-      "customType": "regex",
-      "fileMatch": "^.cirrus.yml$",
-      // Expected veresion format: c<automation_images IMG_SFX value>
-      // For example `c20230120t152650z-f37f36u2204`
-      "matchStrings": ["c(?<currentValue>20\\d{6}t\\d{6}z-\\w+)"],
-      "depNameTemplate": "containers/automation_images",
-      "datasourceTemplate": "github-tags",
-      "versioningTemplate": "loose",
-      "autoReplaceStringTemplate": "c{{{newVersion}}}"
-    },
-
     // For skopeo and podman, manage the golangci-lint version as
     // referenced in their Makefile.
     {
@@ -210,37 +195,5 @@ and/or use the pre-commit hook: https://github.com/renovatebot/pre-commit-hooks
       ]
     },
 
-    /*************************************************
-    ************ CI configuration options ************
-    **************************************************/
-
-    // Github-action updates cannot consistently be tested in a PR.
-    // This is caused by an unfixable architecture-flaw: Execution
-    // context always depends on trigger, and we (obvious) can't know
-    // that ahead of time for all workflows.  Abandon all hope and
-    // mark github-action dep. update PRs '[skip-ci]'
-    {
-      "matchManagers": ["github-actions"],
-      "matchDepTypes": ["action"],
-      "commitMessagePrefix": "[skip-ci]"
-    },
-
-    // Group together all CI VM image updates into a single PR.  This is needed
-    // to handle the case where an IMG_SFX is mentioned in a comment.  For
-    // example, flagging an important TODO or FIXME item.  Or, where CI VM
-    // images are split across multiple IMG_SFX values that all need to be updated.
-    {
-      "matchManagers": ["custom.regex"],
-      "matchFileNames": [".cirrus.yml"],
-      "groupName": "CI VM Image",
-      // Renovate treats "20230120" as the version number, and
-      // maxMajorIncrement defaults to 500 = 5 months;
-      // updates after longer time than that would be ignored.
-      "maxMajorIncrement": 0,
-      // Somebody(s) need to check image update PRs as soon as they open.
-      "reviewers": ["Luap99", "timcoding1988"],
-      // Don't wait, roll out CI VM Updates immediately
-      "schedule": ["at any time"]
-    },
   ]
 }
